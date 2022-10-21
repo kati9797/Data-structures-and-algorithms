@@ -5,8 +5,7 @@
 const int MAX_SIZE = 24;
 
 template<typename T>
-class Stack
-{
+class Stack{
 private:
 	T arr[MAX_SIZE];
 	int topIndex;
