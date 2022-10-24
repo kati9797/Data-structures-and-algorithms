@@ -25,6 +25,10 @@ public:
 	LinkedStack& operator=(const LinkedStack&);
 	~LinkedStack();
 
+	//Move семантики
+	LinkedStack(LinkedStack&&);
+	LinkedStack& operator=(LinkedStack&&);
+
 	bool empty() const;
 	void push(const T&);
 	T pop();
@@ -37,7 +41,7 @@ public:
 // копиране на стек
 // използване на допълнителен стек
 template<typename T>
-void LinkedStack<T> ::copyFrom(const LinkedStack& other)
+void LinkedStack<T> ::copyFrom(const LinkedStack<T>& other)
 {
 	topPtr = nullptr;
 
@@ -76,13 +80,13 @@ LinkedStack<T>::LinkedStack()
 }
 
 template<typename T>
-LinkedStack<T> ::LinkedStack(const LinkedStack& other)
+LinkedStack<T> ::LinkedStack(const LinkedStack<T>& other)
 {
 	copyFrom(other);
 }
 
 template<typename T>
-LinkedStack<T>& LinkedStack<T> :: operator=(const LinkedStack& other)
+LinkedStack<T>& LinkedStack<T> :: operator=(const LinkedStack<T>& other)
 {
 	if (&other != this)
 	{
@@ -96,6 +100,27 @@ template<typename T>
 LinkedStack<T> :: ~LinkedStack()
 {
 	free();
+}
+
+//Move семантики
+template<typename T>
+LinkedStack<T>::LinkedStack(LinkedStack<T>&& other)
+{
+	topPtr = other.topPtr;
+	other.topPtr = nullptr;
+}
+
+template<typename T>
+LinkedStack<T>& LinkedStack<T>::operator=(LinkedStack<T>&& other)
+
+{
+	if (&other != this)
+	{
+		free();
+		topPtr = other.topPtr;
+		other.topPtr = nullptr;
+	}
+	return *this;
 }
 
 template<typename T>
@@ -142,7 +167,7 @@ T LinkedStack<T> ::pop()
 }
 
 template<typename T>
-T const& LinkedStack<T> :: top() const
+T const& LinkedStack<T> ::top() const
 {
 	assert(!empty());
 	return topPtr->data;
