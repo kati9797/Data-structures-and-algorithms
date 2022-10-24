@@ -19,6 +19,10 @@ public:
 	RStack& operator=(const RStack&);
 	~RStack();
 
+	//Move семантики
+	RStack(RStack&&);
+	RStack& operator=(RStack&&);
+
 	bool empty() const;
 	void push(const T&);
 	T pop();
@@ -44,7 +48,7 @@ bool RStack<T> ::isFull() const
 }
 
 template<typename T>
-void RStack<T> ::copyFrom(const RStack& other)
+void RStack<T> ::copyFrom(const RStack<T>& other)
 {
 	topIndex = other.topIndex;
 	capacity = other.capacity;
@@ -70,13 +74,13 @@ RStack<T>::RStack()
 }
 
 template<typename T>
-RStack<T> ::RStack(const RStack& other)
+RStack<T> ::RStack(const RStack<T>& other)
 {
 	copyFrom(other);
 }
 
 template<typename T>
-RStack<T>& RStack<T> :: operator=(const RStack& other)
+RStack<T>& RStack<T> :: operator=(const RStack<T>& other)
 {
 	if (this != &other)
 	{
@@ -90,6 +94,30 @@ template<typename T>
 RStack<T> :: ~RStack()
 {
 	free();
+}
+
+//Move семантики
+template<typename T>
+RStack<T>::RStack(RStack<T>&& other)
+{
+	topIndex = other.topIndex;
+	capacity = other.capacity;
+	arr = other.arr;
+	other.arr = nullptr;
+}
+
+template<typename T>
+RStack<T>& RStack<T>::operator=(RStack<T>&& other)
+{
+	if (&other != this)
+	{
+		free();
+		topIndex = other.topIndex;
+		capacity = other.capacity;
+		arr = other.arr;
+		other.arr = nullptr;
+	}
+	return *this;
 }
 
 template<typename T>
