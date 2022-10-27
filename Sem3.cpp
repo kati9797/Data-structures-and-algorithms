@@ -126,11 +126,59 @@ public:
     }
 };
 
+
+//Даден е масив от цели числа. 
+//Представяме си, че имаме прозорец с дължина k който се движи отляво надясно. 
+//Единственото което можем да видим са числата в прозореца. Да се изведе максимумът на всеки такъв прозорец.
+
+std::vector<int> maxWindow(const std::vector<int>& v, int k)
+{
+    std::vector<int> res;
+    std::deque<int> window;
+
+    for (int i = 0; i < k; i++)
+    {
+        while(!window.empty() && window.back() < v[i])
+        {
+            window.pop_back();
+        }
+        window.push_back(v[i]);
+    }
+
+    //най-големият елемент от текущия прозорец е винаги първия елемент от дек-а
+    res.push_back(window.front());
+
+    for (int i = k; i < v.size(); i++)
+    {
+        //ако най-големият елемент в предходния прозорец съпада с неговия първи елемент,
+        //то когато разглеждаме нов прозорец, той трябва да отпадне, защото не влиза в него
+        if (window.front() == v[i - k])
+        {
+            window.pop_front();
+        }
+
+        while (!window.empty() && window.back() < v[i]) {
+            window.pop_back();
+        }
+
+        window.push_back(v[i]);
+        res.push_back(window.front());
+    }
+    return res;
+}
+
 int main()
 {
     //printAllBinaryNumbers(10);
 
     //MinMoves m;
     //std::cout << m.getMinMoves({ 0, 0 }, { 3, 3 }) << std::endl;
+    
+     std::vector<int> example = { 1, 3, -1, -3, 5, 3, 6, 7 };
+
+    std::vector<int> result = maxWindow(example, 3);
+
+    for (auto elem : result)
+        std::cout << elem << " ";
 }
 
