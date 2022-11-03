@@ -26,6 +26,120 @@ private:
 	void free();
 
 public:
+
+	class Iterator
+	{
+	private:
+		SinglyLinkedListElement<T>* iter;
+		Iterator(SinglyLinkedListElement<T>* arg) : iter{ arg } {}
+
+	public:
+
+		friend class SinglyLinkedList;
+
+		Iterator& operator++()
+		{
+			if (iter == nullptr)
+				return *this;
+			iter = iter.next;
+			return (*this);
+		}
+
+		Iterator operator++(int)
+		{
+			Iterator toReturn = *this;
+			(*this).operator++;
+			return toReturn;
+		}
+
+		// сравняват се адреси
+		bool operator==(const Iterator& other) const
+		{
+			return other.iter == iter;
+		}
+
+		bool operator!=(const Iterator& other) const
+		{
+			return !(*this == other);
+		}
+
+		T& operator*() const
+		{
+			return iter->data;
+		}
+	};
+
+	class ConstIterator
+	{
+	private:
+		SinglyLinkedListElement<T>* constIter;
+		ConstIterator(SinglyLinkedListElement<T>* arg) : constIter{ arg } {}
+
+	private:
+
+		friend class SinglyLinkedList;
+
+		ConstIterator& operator++()
+		{
+			if (constIter == nullptr)
+				return *this;
+			constIter = constIter = constIter->next;
+			return *this;
+		}
+
+		ConstIterator operator++(int)
+		{
+			ConstIterator toReturn = *this;
+			++(*this);
+			return toReturn;
+		}
+
+		bool operator==(const ConstIterator& other) const
+		{
+			return other.constIter = constIter;
+		}
+
+		bool operator!=(const ConstIterator& other) const
+		{
+			return !(*this == other);
+		}
+
+		T& operator*() const
+		{
+			return constIter->data;
+		}
+	};
+
+	Iterator begin()
+	{
+		return Iterator(head);
+	}
+
+	Iterator end()
+	{
+		return Iterator(tail);
+	}
+
+	ConstIterator begin() const
+	{
+		return Iterator(head);
+	}
+
+	ConstIterator end() const
+	{
+		return Iterator(tail);
+	}
+
+	ConstIterator cbegin()
+	{
+		return ConstIterator(head);
+	}
+
+	ConstIterator cend()
+	{
+		return ConstIterator(tail);
+	}
+
 	SinglyLinkedList();
 	SinglyLinkedList(const SinglyLinkedList<T>&);
 	SinglyLinkedList& operator=(const SinglyLinkedList<T>&);
@@ -35,11 +149,10 @@ public:
 	void pushFront(const T&);
 	void pushBack(const T&);
 	void popFront();
+	void popBack();
 
 	const T& front() const;
 	const T& back() const;
-	SLE* getHead() const;
-	SLE* getTail() const;
 
 	template<typename U>
 	friend SinglyLinkedList<U> concat(SinglyLinkedList<U>&, SinglyLinkedList<U>&);
@@ -107,7 +220,7 @@ SinglyLinkedList<T>::~SinglyLinkedList()
 template<typename T>
 bool SinglyLinkedList<T>::isEmpty() const
 {
-	return head == nullptr && tail == nullptr;
+	return (head == nullptr && tail == nullptr);
 }
 
 template<typename T>
@@ -159,6 +272,32 @@ void SinglyLinkedList<T>::popFront()
 		SLE* toDelete = head;
 		head = head->next;
 		delete toDelete;
+	}
+}
+
+template<typename T>
+void SinglyLinkedList<T>::popBack()
+{
+	if (isEmpty())
+	{
+		std::cerr << "Empty list!" << std::endl;
+	}
+	else if (head == tail)
+	{
+		delete tail;
+		head = nullptr;
+		tail = nullptr;
+	}
+	else
+	{
+		SinglyLinkedListElement<T>* iter = head;
+		while (iter->next != tail)
+		{
+			iter = iter->next;
+		}
+		delete tail;
+		tail = iter;
+		tail->next = nullptr;
 	}
 }
 
@@ -220,16 +359,4 @@ SinglyLinkedList<T> concat(SinglyLinkedList<T>& lhs, SinglyLinkedList<T>& rhs)
 
 	rhs.head = rhs.tail = lhs.head = lhs.tail = nullptr;
 	return result;
-}
-
-template<typename T>
-SinglyLinkedListElement<T>* SinglyLinkedList<T>::getHead() const
-{
-	return head;
-}
-
-template<typename T>
-SinglyLinkedListElement<T>* SinglyLinkedList<T>::getTail() const
-{
-	return tail;
 }
