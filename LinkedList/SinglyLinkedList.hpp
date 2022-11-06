@@ -63,7 +63,7 @@ public:
 			return !(*this == other);
 		}
 
-		T& operator*() const
+		T& operator*() 
 		{
 			return iter->data;
 		}
@@ -72,7 +72,7 @@ public:
 	class ConstIterator
 	{
 	private:
-		SinglyLinkedListElement<T>* constIter;
+		const SinglyLinkedListElement<T>* constIter;
 		ConstIterator(SinglyLinkedListElement<T>* arg) : constIter{ arg } {}
 
 	private:
@@ -104,7 +104,7 @@ public:
 			return !(*this == other);
 		}
 
-		T& operator*() const
+		const T& operator*() const
 		{
 			return constIter->data;
 		}
@@ -117,7 +117,7 @@ public:
 
 	Iterator end()
 	{
-		return Iterator(tail);
+		return Iterator(nullptr);
 	}
 
 	ConstIterator begin() const
@@ -127,7 +127,7 @@ public:
 
 	ConstIterator end() const
 	{
-		return Iterator(tail);
+		return Iterator(nullptr);
 	}
 
 	ConstIterator cbegin()
@@ -137,7 +137,7 @@ public:
 
 	ConstIterator cend()
 	{
-		return ConstIterator(tail);
+		return ConstIterator(nullptr);
 	}
 
 	SinglyLinkedList();
