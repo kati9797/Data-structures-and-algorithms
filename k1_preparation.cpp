@@ -212,3 +212,47 @@ LinkedListNode<T>* insertIntoCyclicSortedList(LinkedListNode<T>* ll, const int& 
     iter->next = node;
     return ll;
 }
+
+template<typename T>
+LinkedListNode<T>* reorder(LinkedListNode<T>* ll)
+{
+    LinkedListNode<T>* mid = findMiddle(ll);
+    LinkedListNode<T>* rev = reverse(mid);
+    LinkedListNode<T>* iter = ll;
+    if (iter == mid)
+    {
+        return ll;
+    }
+
+    while (iter->next != mid)
+    {
+        iter = iter->next;
+    }
+    iter->next = nullptr;
+
+    iter = ll;
+    LinkedListNode<T>* back = nullptr;
+    while (rev)
+    {
+        if (iter == nullptr)
+        {
+            back->next = rev;
+            back = rev;
+            rev = rev->next;
+        }
+        else
+        {
+            if (back != nullptr)
+            {
+                back->next = iter;
+            }
+            LinkedListNode<T>* temp = iter->next;
+            iter->next = rev;
+            iter = temp;
+            back = rev;
+            rev = rev->next;
+        }
+    }
+
+    return ll;
+}
