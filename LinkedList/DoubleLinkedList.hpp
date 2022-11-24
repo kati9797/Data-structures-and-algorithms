@@ -256,7 +256,7 @@ typename DoubleLinkedList<T>::Iterator DoubleLinkedList<T>::begin()
 template<typename T>
 typename DoubleLinkedList<T>::Iterator DoubleLinkedList<T>::end()
 {
-    return Iterator(tail);
+    return Iterator(nullptr);
 }
 
 template<typename T>
