@@ -152,7 +152,7 @@ T LinkedStack<T> ::pop()
 	}
 
 	// стойността на елемента, който ще изтрием
-	T result = top();
+	T result = topPtr->data;
 
 	// насочваме временен указател към върха на стека, който ще бъде изтрит
 	StackElement<T>* tempPtr = topPtr;
