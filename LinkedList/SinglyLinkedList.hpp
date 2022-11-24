@@ -173,11 +173,8 @@ void SinglyLinkedList<T>::free()
 template<typename T>
 void SinglyLinkedList<T>::copyFrom(const SinglyLinkedList<T>& other)
 {
-	if (other.isEmpty())
-	{
-		head = nullptr;
-		tail = nullptr;
-	}
+	head = nullptr;
+	tail = nullptr;
 
 	SLE* tempPtr = other.head;
 	while (tempPtr != nullptr)
