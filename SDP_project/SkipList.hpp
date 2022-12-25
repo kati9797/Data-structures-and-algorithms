@@ -51,7 +51,7 @@ public:
 		// !it
 		bool operator!() const
 		{
-			return iter->skip != nullptr;
+			return iter != nullptr;
 		}
 
 		// *it
@@ -60,9 +60,9 @@ public:
 		}
 
 		// &it
-		T& operator&()
+		Iterator operator&()
 		{
-			return (iter->skip->data);
+			return Iterator(iter->skip);
 		}
 		
 		// == 
@@ -273,77 +273,49 @@ std::list<T> findBestWay(SkipList<T>& sl, std::list<T>& list)
 		{
 			toReturn.push_back(*skipIter);
 			it++;
-
-			if (!skipIter && &skipIter == *it)
-			{
-				while (*skipIter != *it)
-				{
-					skipIter++;
-				}
-			}
-			else if (!skipIter && &skipIter != *it)
-			{
-				bool foundNext = false;
-				typename SkipList<T>::Iterator skip = skipIter;
-				while (*skip != &skipIter)
-				{
-					if (*skip == *it)
-						foundNext = true;
-					skip++;
-				}
-
-				if (foundNext == true)
-					skipIter++;
-				else
-					skipIter = skip;
-			}
-			else
-			{
-				skipIter++;
-			}
 		}
 		else
 		{
 			toReturn.push_back(*skipIter);
-			if (!skipIter && &skipIter == *it)
-			{
-				while (*skipIter != *it)
-				{
-					skipIter++;
-				}
-			}
-			else if (!skipIter && &skipIter != *it)
-			{
-				bool foundNext = false;
-				typename SkipList<T>::Iterator skip = skipIter;
-				while (*skip != &skipIter)
-				{
-					if (*skip == *it)
-						foundNext = true;
-					skip++;
-				}
+		}
 
-				if (foundNext == true)
-					skipIter++;
-				else
-					skipIter = skip;
-			}
-			else
+		typename SkipList<T>::Iterator skip = &skipIter;
+		if (!skip && *skip == *it)
+		{
+			skipIter = skip;
+		}
+		else if (!skip && *skip != *it)
+		{
+			bool foundNext = false;
+			typename SkipList<T>::Iterator iter = skipIter;
+			while (*iter != *skip)
 			{
-				skipIter++;
+				if (*iter == *it)
+				{
+					foundNext = true;
+					break;
+				}
+				iter++;
 			}
+
+			if (foundNext == true)
+				skipIter++;
+			else
+				skipIter = skip;
+		}
+		else
+		{
+			skipIter++;
 		}
 	}
 
 	while (skipIter != sl.end())
 	{
-		if (!skipIter)
+		typename SkipList<T>::Iterator skip = &skipIter;
+		if (!skip)
 		{
 			toReturn.push_back(*skipIter);
-			while (*skipIter != &skipIter)
-			{
-				skipIter++;
-			}
+			skipIter = skip;
 		}
 		else
 		{
