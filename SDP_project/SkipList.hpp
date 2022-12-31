@@ -260,6 +260,61 @@ void SkipList<T>::printSkip() const
 }
 
 template<typename T>
+void searchBetterSkip(bool& foundNext, bool& foundSkip, typename SkipList<T>::Iterator& skipIter, T nextInList)
+{
+	typename SkipList<T>::Iterator skip = &skipIter; // скип поле на текуща гара
+	typename SkipList<T>::Iterator iter = skipIter; // итератор, чрез който ще обхождаме
+	iter++;
+
+	while (*iter != *skip) // обхождаме междинните гари
+	{
+
+		if (*iter == nextInList) // сред междинните гари е намерена следващата в нашия списък (ако направим скип, ще я пропуснем)
+		{
+			foundNext = true;
+			break;
+		}
+
+		typename SkipList<T>::Iterator skipFieldIter = &iter;
+
+		if (!skipFieldIter && *skipFieldIter == nextInList) // намерена е гара, чието скип поле води директно до следващата желана гара (този път може да е по-оптимален, но може и да не е)
+		{
+			foundSkip = true;
+			typename SkipList<T>::Iterator copySkipIter = skipIter;
+			typename SkipList<T>::Iterator copyIter = iter;
+
+			// броячи за това колко гари се пропускат чрез скип полетата
+			int cntSkipIter = 0;
+			int cntIter = 0;
+
+			while (copySkipIter != skip)
+			{
+				copySkipIter++;
+				++cntSkipIter;
+			}
+
+			while (*copyIter != nextInList)
+			{
+				copyIter++;
+				++cntIter;
+			}
+
+			// предвижваме се чрез итератора, който пропуска повече гари
+			if (cntSkipIter >= cntIter)
+			{
+				skipIter = skip;
+			}
+			else
+			{
+				skipIter++;
+			}
+			break;
+		}
+		iter++;
+	}
+}
+
+template<typename T>
 std::list<T> findBestWay(SkipList<T>& sl, std::list<T>& list)
 {
 	typename SkipList<T>::Iterator skipIter = sl.begin();
@@ -269,53 +324,67 @@ std::list<T> findBestWay(SkipList<T>& sl, std::list<T>& list)
 
 	while (it != list.end())
 	{
+		// гарата, на която се намираме, е гара, която трябва да бъде посетена
 		if (*skipIter == *it)
 		{
 			toReturn.push_back(*skipIter);
 			it++;
-		}
+		} // гара, която не е в списъка, но задължително минаваме през нея
 		else
 		{
 			toReturn.push_back(*skipIter);
 		}
 
-		typename SkipList<T>::Iterator skip = &skipIter;
-		if (!skip && *skip == *it)
+		typename SkipList<T>::Iterator skip = &skipIter; // скип поле на текуща гара
+		if (!skip && *skip == *it) // ако скип полето сочи към следващата гара, която трябва да посетим -> се предвижваме чрез него
 		{
 			skipIter = skip;
 		}
-		else if (!skip && *skip != *it)
+		else if (!skip && *skip != *it) // ако има скип поле (различно от nullptr), но води до друга гара, която не е следваща в списъка ни 
 		{
-			bool foundNext = false;
-			typename SkipList<T>::Iterator iter = skipIter;
-			while (*iter != *skip)
-			{
-				if (*iter == *it)
-				{
-					foundNext = true;
-					break;
-				}
-				iter++;
-			}
+			bool foundNext = false; // сред междинните гари е намерена е следващата в списъка за посещение
+			bool foundSkip = false; // сред междинните гари е намерена такава, от която можем да стигнем до следващата в списъка, чрез скип полето й
+			searchBetterSkip(foundNext, foundSkip, skipIter, *it);
 
 			if (foundNext == true)
 				skipIter++;
-			else
+			else if (foundSkip == false)
 				skipIter = skip;
 		}
-		else
+		else // няма скип поле
 		{
 			skipIter++;
 		}
 	}
 
+	typename SkipList<T>::Iterator end = skipIter;
+	typename SkipList<T>::Iterator last = end;
+	end++;
+	while (end != sl.end())
+	{
+		last = end;
+		end++;
+	}
+
+	
 	while (skipIter != sl.end())
 	{
 		typename SkipList<T>::Iterator skip = &skipIter;
-		if (!skip)
+
+		if (!skip && *skip == *last) // намираме стойността на последния елемент от списъка
 		{
 			toReturn.push_back(*skipIter);
 			skipIter = skip;
+			break;
+		}
+		else if (!skip && *skip != *last)
+		{
+			bool foundNext = false;
+			bool foundSkip = false; // сред междинните гари е намерена такава, от която можем да стигнем до следващата в списъка, чрез скип полето й
+			searchBetterSkip(foundNext, foundSkip, skipIter, *last);
+
+			if (foundSkip == false)
+				skipIter = skip;
 		}
 		else
 		{
