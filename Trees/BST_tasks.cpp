@@ -3,6 +3,7 @@
 #include <vector>
 #include<string>
 #include "ListNode.hpp"
+#include <cassert>
 
 // Задача първа
 // Да се напише функция, която проверява дали дадено дърво е двоично наредено дърво.
@@ -23,9 +24,6 @@ bool isBST(const Node<int>* root)
     return isBSTrec(root, INT_MIN, INT_MAX);
 }
 
-// Задача втора
-// Да се напише функция, която от сортиран вектор построява двоично наредено дърво.
-
 Node<int>* buildBSTrec(int start, int end, std::vector<int> v)
 {
     if (end < start)
@@ -40,9 +38,6 @@ Node<int>* buildBST(std::vector<int> v)
 {
     return buildBSTrec(0, v.size() - 1, v);
 }
-
-// Задача трета
-// Да се напише функция, която премахва възел от двоично наредено дърво.
 
 bool removeElem(Node<int>*& root, const int& elem)
 {
@@ -213,6 +208,7 @@ Node<int>* buildFromList(ListNode<int>* head)
     return res;
 }
 
+
 // Задача осма
 // Search in a Binary Search Tree
 // По даден корен на двоично дърво за търсене и стойност на елемен от дървото, проверете дали елемента се съдържа в дървото.
@@ -265,6 +261,316 @@ Node<int>* insertIntoBST(Node<int>*& root, const int& elem)
     }
 
     return root;
+}
+
+// Задача десета
+// Лава и дяна ротация на дърво
+
+void rotateLeft(Node<int>*& root)
+{
+    assert(root->right != nullptr);
+
+    Node<int>* newRoot = root->right;
+    root->right = newRoot->left;
+    newRoot->left = root;
+
+    root = newRoot;
+}
+
+void rotateRight(Node<int>*& root)
+{
+    assert(root->left != nullptr);
+
+    Node<int>* newRoot = root->left;
+    root->left = newRoot->right;
+    newRoot->right = root;
+
+    root = newRoot;
+}
+
+// Задача (За домашно)
+// Нека имаме двоично наредено дърво T от цели числа.
+
+// pred(x) = max{ y | y е ключ на възел в Т и y < x } // Предшественик
+// succ(x) = min{ y | y е ключ на възел в T и y > x } // Наследник
+// Да се реализира pred(t, x) и succ(t, x).Бележка: Не е нужно х да се съдържа в дървото.
+
+void predRec(Node<int>* root, int x, int& max)
+{
+    if (root == nullptr)
+    {
+        return;
+    }
+
+    if (root->data == x)
+    {
+        return;
+    }
+
+    if (root->data > x)
+    {
+        if (root->data > max)
+            max = root->data;
+
+        // std::cout << root->data << " " << max << std::endl;
+        predRec(root->left, x, max);
+    }
+
+    if (root->data < x)
+    {
+        if (root->data > max)
+            max = root->data;
+
+        // std::cout << root->data << " " << max << std::endl;
+        predRec(root->right, x, max);
+    }
+}
+
+int pred(Node<int>* root, int x)
+{
+    int max = INT_MIN;
+    predRec(root, x, max);
+    if (max == INT_MIN)
+    {
+        std::cout << "No predecessors!" << std::endl;
+        return int();
+    }
+    return max;
+}
+
+void findMinRec(Node<int>* root, int& min)
+{
+    if (root == nullptr)
+    {
+        return;
+    }
+
+    if (root->data < min)
+    {
+        min = root->data;
+    }
+
+    findMinRec(root->left, min);
+}
+
+void succRec(Node<int>* root, int x, int& min)
+{
+    if (root == nullptr)
+    {
+        return;
+    }
+
+    if (root->data == x)
+    {
+        min = root->data;
+        succRec(root->right, x, min);
+    }
+
+    if (root->data > x)
+    {
+        if (root->data > min)
+        {
+            min = root->data;
+            findMinRec(root->left, min);
+            return;
+        }
+            
+        // std::cout << root->data << " " << min << std::endl;
+        succRec(root->left, x, min);
+    }
+
+    if (root->data < x)
+    {
+        if (root->data > min)
+        {
+            min = root->data;
+            findMinRec(root->left, min);
+            return;
+        }
+         
+        // std::cout << root->data << " " << min << std::endl;
+        succRec(root->right, x, min);
+    }
+}
+
+int succ(Node<int>* root, int x)
+{
+    int min = INT_MAX;
+    succRec(root, x, min);
+    if (min == INT_MAX || min == x)
+    {
+        std::cout << "No successors!" << std::endl;
+        return int();
+    }
+    return min;
+}
+
+// Задача (Контролно)
+// Да се напише функция, която намира сумата на всички елементи на двоично наредено дърво от цели числа, 
+// които имат нечетен брой наследници в интервала[x, y](т.е.сумата на броя елементи в лявото поддърво 
+// и броя елементи в дясното поддърво в интервала[x, y] е нечетно число).Нека x и y са параметри на функцията.
+
+void sumPrimeSuccRec(Node<int>* root, int x, int y, int& cnt)
+{
+    if (root == nullptr)
+        return;
+
+    // std::cout<<root->data<<std::endl;
+    if (root->data >= x && root->data <= y)
+    {
+        //std::cout << root->data << std::endl;
+        cnt++;
+    }
+
+    if (root->data <= y)
+    {
+        sumPrimeSuccRec(root->left, x, y, cnt);
+    }
+    if (root->data >= x)
+    {
+        sumPrimeSuccRec(root->right, x, y, cnt);
+    }
+}
+
+bool isPrime(int n)
+{
+    if (n <= 1)
+        return false;
+    else if (n == 2)
+        return true;
+
+    double temp = sqrt(n);
+    for (int i = 2; i <= temp; i++)
+    {
+        if (n % i == 0)
+            return false;
+    }
+
+    return true;
+}
+
+void rec(Node<int>* root, int x, int y, int& sum)
+{
+    if (root == nullptr)
+    {
+        return;
+    }
+
+    int cnt = 0;
+    sumPrimeSuccRec(root, x, y, cnt);
+    if (root->data >= x && root->data <= y)
+        cnt--;
+
+    if (isPrime(cnt))
+    {
+        sum += root->data; 
+        std::cout << root->data << " " << cnt << " " << sum << std::endl;
+    }
+    rec(root->left, x, y, sum);
+    rec(root->right, x, y, sum);
+}
+
+int sumPrimeSucc(Node<int>* root, int x, int y)
+{
+    int sum = 0;
+    rec(root, x, y, sum);
+    return sum;
+}
+
+// Да се напише функция, която приема двоично/произволно дърво и връща височината му.
+
+int heightTree(Node<int>* root)
+{
+    if (root == nullptr)
+    {
+        return 0;
+    }
+
+    int heightLeft = 1 + heightTree(root->left);
+    int heightRight = 1 + heightTree(root->right);
+    return std::max(heightLeft, heightRight) - 1;
+}
+
+// Да се напише функция, която приема двоично / произволно дърво с n върха и проверява дали числата от 1 до n се срещат точно веднъж в дървото.
+
+void findNElementsRec(Node<int>* root, int n, std::vector<int>& v)
+{
+    if (root == nullptr)
+    {
+        return;
+    }
+
+    if (root->data >= 1 && root->data <= n)
+        v[root->data - 1]++;
+
+    findNElementsRec(root->left, n, v);
+    findNElementsRec(root->right, n, v);
+}
+
+bool findNelements(Node<int>* root, int n)
+{
+    std::vector<int> v = std::vector<int>(n);;
+    for (int i = 0; i < n; i++)
+    {
+        v[i] = 0;
+    }
+    findNElementsRec(root, n, v);
+    for (int i = 0; i < n; i++)
+    {
+        if (v[i] != 1)
+            return false;
+    }
+    return true;
+}
+
+// Да се напише функция, която приема двоично / произволно дърво и връща всички думи, които са получени от корена до някое листо.
+
+void allWordsRec(Node<char>* root, std::string curr, std::vector<std::string>& v)
+{
+    if (root == nullptr)
+    {
+        return;
+    }
+
+    curr += root->data;
+    if (root->left == nullptr && root->right == nullptr)
+    {
+        v.push_back(curr);
+    }
+
+    allWordsRec(root->left, curr, v);
+    allWordsRec(root->right, curr, v);
+}
+
+std::vector<std::string> allWords(Node<char>* root)
+{
+    std::vector<std::string> v;
+    allWordsRec(root, "", v);
+    return v;
+}
+
+// Да се напише функция, която приема двоично/произволно дърво, чиито елементи са символи и цяло число к и отпечатва думата на к-тото ниво на дървото.
+
+void wordKLevel(Node<char>* root, int k, std::string& str, int currLevel)
+{
+    if (root == nullptr)
+        return;
+
+    if (currLevel == k)
+    {
+        str += root->data;
+        return;
+    }
+
+    wordKLevel(root->left, k, str, currLevel + 1);
+    wordKLevel(root->right, k, str, currLevel + 1);
+}
+
+std::string wordKLevel(Node<char>* root, int k)
+{
+    std::string str = "";
+    wordKLevel(root, k, str, 0);
+    return str;
 }
 
 int main()
@@ -349,5 +655,61 @@ int main()
     Tree* t2 = insertIntoBST(t1, 2);
     printTree(t2);
     freeTree(t1);
+    */
+
+    // Task 10
+    /*
+    Tree* t = new Tree(5, new Tree(3, new Tree(1), new Tree(4)), new Tree(6, nullptr, new Tree(7)));
+    rotateRight(t);
+    printTree(t);
+    freeTree(t);
+    */
+
+    // Task 11
+    /*
+    Tree* t = new Tree(5, new Tree(3, new Tree(1), new Tree(4)), new Tree(8, new Tree(6), new Tree(9, nullptr, new Tree(10))));
+    std::cout << succ(t, 4);
+    freeTree(t);
+    */
+
+    // Task 12 
+    /*
+    Tree* t = new Tree(5, new Tree(3, new Tree(1), new Tree(4)), new Tree(8, new Tree(6), new Tree(9, nullptr, new Tree(10))));
+    std::cout << sumPrimeSucc(t,1,10);
+    freeTree(t);
+    */
+
+    // Task 13
+    /*
+    Tree* t = new Tree(5, new Tree(3, new Tree(1), new Tree(4)), new Tree(8, new Tree(6), new Tree(9, nullptr, new Tree(10))));
+    std::cout << heightTree(t);
+    freeTree(t);
+    */
+
+    // Task 14
+    /*
+    Tree* t = new Tree(5, new Tree(3, new Tree(1, nullptr, nullptr), new Tree(4)), new Tree(7, new Tree(6), new Tree(8, nullptr, new Tree(9))));
+    std::cout << findNelements(t, 9);
+    freeTree(t);
+    */
+
+    // Task 15
+    /*
+    Node<char>* t = new Node<char>('a', new Node<char>('b', new Node<char>('b'), new Node<char>('c', new Node<char>('d'), new Node<char>('e'))), new Node<char>('f', new Node<char>('g')));
+    std::vector<std::string> v = allWords(t);
+    printTree(t);
+    for (int i = 0; i < v.size(); i++)
+    {
+        std::cout << v[i] << " ";
+    }
+    freeTree(t);
+    */
+
+    // Task 16
+    /*
+    Node<char>* t = new Node<char>('a', new Node<char>('b', new Node<char>('b'), new Node<char>('c', new Node<char>('d'), new Node<char>('e'))), new Node<char>('f', new Node<char>('g')));
+    printTree(t);
+    std::cout << wordKLevel(t, 2);
+    freeTree(t);
     */
 }
