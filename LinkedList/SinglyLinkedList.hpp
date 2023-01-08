@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 
 template<typename T>
@@ -27,119 +28,6 @@ private:
 
 public:
 
-	class Iterator
-	{
-	private:
-		SinglyLinkedListElement<T>* iter;
-		Iterator(SinglyLinkedListElement<T>* arg) : iter{ arg } {}
-
-	public:
-
-		friend class SinglyLinkedList;
-
-		Iterator& operator++()
-		{
-			if (iter == nullptr)
-				return *this;
-			iter = iter.next;
-			return (*this);
-		}
-
-		Iterator operator++(int)
-		{
-			Iterator toReturn = *this;
-			(*this).operator++;
-			return toReturn;
-		}
-
-		// сравняват се адреси
-		bool operator==(const Iterator& other) const
-		{
-			return other.iter == iter;
-		}
-
-		bool operator!=(const Iterator& other) const
-		{
-			return !(*this == other);
-		}
-
-		T& operator*() 
-		{
-			return iter->data;
-		}
-	};
-
-	class ConstIterator
-	{
-	private:
-		const SinglyLinkedListElement<T>* constIter;
-		ConstIterator(SinglyLinkedListElement<T>* arg) : constIter{ arg } {}
-
-	private:
-
-		friend class SinglyLinkedList;
-
-		ConstIterator& operator++()
-		{
-			if (constIter == nullptr)
-				return *this;
-			constIter = constIter = constIter->next;
-			return *this;
-		}
-
-		ConstIterator operator++(int)
-		{
-			ConstIterator toReturn = *this;
-			++(*this);
-			return toReturn;
-		}
-
-		bool operator==(const ConstIterator& other) const
-		{
-			return other.constIter = constIter;
-		}
-
-		bool operator!=(const ConstIterator& other) const
-		{
-			return !(*this == other);
-		}
-
-		const T& operator*() const
-		{
-			return constIter->data;
-		}
-	};
-
-	Iterator begin()
-	{
-		return Iterator(head);
-	}
-
-	Iterator end()
-	{
-		return Iterator(nullptr);
-	}
-
-	ConstIterator begin() const
-	{
-		return Iterator(head);
-	}
-
-	ConstIterator end() const
-	{
-		return Iterator(nullptr);
-	}
-
-	ConstIterator cbegin()
-	{
-		return ConstIterator(head);
-	}
-
-	ConstIterator cend()
-	{
-		return ConstIterator(nullptr);
-	}
-
 	SinglyLinkedList();
 	SinglyLinkedList(const SinglyLinkedList<T>&);
 	SinglyLinkedList& operator=(const SinglyLinkedList<T>&);
@@ -158,6 +46,63 @@ public:
 	friend SinglyLinkedList<U> concat(SinglyLinkedList<U>&, SinglyLinkedList<U>&);
 
 	void print() const;
+
+	class Iterator
+	{
+	private:
+
+		SinglyLinkedListElement<T>* iter;
+
+		friend class SinglyLinkedList;
+
+	public:
+
+		Iterator(SinglyLinkedListElement<T>* arg = nullptr) : iter{ arg } {}
+
+		Iterator& operator++()
+		{
+			if (iter == nullptr)
+				return *this;
+			iter = iter->next;
+			return (*this);
+		}
+
+		Iterator operator++(int)
+		{
+			Iterator toReturn = *this;
+			++(*this);
+			return toReturn;
+		}
+
+		// сравняват се адреси
+		bool operator==(const Iterator& other) const
+		{
+			return other.iter == iter;
+		}
+
+		bool operator!=(const Iterator& other) const
+		{
+			return !(*this == other);
+		}
+
+		T& operator*() const
+		{
+			return iter->data;
+		}
+	};
+
+	Iterator begin() const
+	{
+		return Iterator(head);
+	}
+
+	Iterator end() const
+	{
+		return Iterator();
+	}
+
+	Iterator insertAfter(const Iterator&, const T&);
+	Iterator remove(const Iterator&);
 };
 
 template<typename T>
@@ -173,8 +118,11 @@ void SinglyLinkedList<T>::free()
 template<typename T>
 void SinglyLinkedList<T>::copyFrom(const SinglyLinkedList<T>& other)
 {
-	head = nullptr;
-	tail = nullptr;
+	if (other.isEmpty())
+	{
+		head = nullptr;
+		tail = nullptr;
+	}
 
 	SLE* tempPtr = other.head;
 	while (tempPtr != nullptr)
@@ -305,7 +253,7 @@ const T& SinglyLinkedList<T>::front() const
 	{
 		throw std::length_error("Empty list!");
 	}
-	
+
 	return head->data;
 }
 
@@ -333,27 +281,63 @@ void SinglyLinkedList<T>::print() const
 }
 
 template<typename T>
+typename SinglyLinkedList<T>::Iterator SinglyLinkedList<T>::insertAfter(const Iterator& it, const T& d)
+{
+	if (!it.iter || !it.iter->next)
+	{
+		pushBack(d);
+		return end();
+	}
+
+	SinglyLinkedListElement<T>* newElem = new SinglyLinkedListElement<T>(d);
+	newElem->next = it.iter->next;
+	it.iter->next = newElem;
+	return typename SinglyLinkedList<T>::Iterator(newElem);
+}
+
+template<typename T>
+typename SinglyLinkedList<T>::Iterator SinglyLinkedList<T>::remove(const Iterator& it)
+{
+	if (!it.iter || !it.iter->next)
+	{
+		popBack();
+		return end();
+	}
+	else if (it.iter == head)
+	{
+		popFront();
+		return begin();
+	}
+
+	SinglyLinkedListElement<T>* toDelete = it.iter;
+	SinglyLinkedListElement<T>* temp = head;
+	while (temp && temp->next != toDelete)
+	{
+		temp = temp->next;
+	}
+	SinglyLinkedListElement<T>* next = toDelete->next;
+	temp->next = next;
+	delete toDelete;
+	return typename SinglyLinkedList<T>::Iterator(next);
+}
+
+template<typename T>
 SinglyLinkedList<T> concat(SinglyLinkedList<T>& lhs, SinglyLinkedList<T>& rhs)
 {
-	SinglyLinkedList<T> result;
-
-	if (lhs.head == nullptr)
+	if (rhs.isEmpty())
 	{
-		result.head = rhs.head;
-		result.tail = rhs.tail;
+		return lhs;
 	}
-	else if (rhs.head == nullptr)
+	else if (lhs.isEmpty())
 	{
-		result.head = lhs.head;
-		result.tail = lhs.tail;
-	}
-	else
-	{
-		result.head = lhs.head;
-		lhs.tail->next = rhs.head;
-		result.tail = rhs.tail;
+		return rhs;
 	}
 
-	rhs.head = rhs.tail = lhs.head = lhs.tail = nullptr;
-	return result;
+	SinglyLinkedListElement<T>* temp = lhs.head;
+	while (temp->next)
+	{
+		temp = temp->next;
+	}
+	temp->next = rhs.head;
+	return lhs;
 }
