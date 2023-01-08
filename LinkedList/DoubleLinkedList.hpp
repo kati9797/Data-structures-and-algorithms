@@ -1,266 +1,333 @@
+#pragma once 
 #include <iostream>
-#pragma once
 
 template<typename T>
-struct Node
-{
-    T data;
-    Node<T>* next;
-    Node<T>* prev;
-
-    Node(const T& d, Node<T>* n = nullptr, Node<T>* p = nullptr) : data{ d }, next{ n }, prev{ p } {}
-};
-
-template<typename T>
-class DoubleLinkedList
+class DLL
 {
 private:
-  
-    Node<T>* head;
-    Node<T>* tail;
 
-    void copyFrom(const DoubleLinkedList<T>&);
-    void free();
+	struct Node
+	{
+		T data;
+		Node* next;
+		Node* prev;
 
-    class Iterator 
-    {
-    private:
-      
-        Node<T>* iter;
-        Iterator(Node<T>* it = nullptr) : iter{ it } {}
+		Node(const T& d, Node* n = nullptr, Node* p = nullptr) : data{ d }, next{ n }, prev{ p } {}
+	};
 
-    public:
-      
-        friend class DoubleLinkedList<T>;
+	Node* head;
+	Node* tail;
 
-        Iterator& operator++()
-        {
-            if (iter == nullptr)
-                return *this;
-            iter = iter->next;
-            return *this;
-        }
-
-        Iterator operator++(int)
-        {
-            if (iter == nullptr)
-                return *this;
-            Node<T>* toReturn = iter;
-            iter = iter->next;
-            return toReturn;
-        }
-
-        Iterator& operator--()
-        {
-            if (iter == nullptr)
-                return *this;
-            iter = iter->prev;
-            return iter;
-        }
-
-        Iterator operator--(int)
-        {
-            if (iter == nullptr)
-                return *this;
-            Node<T>* toReturn = iter;
-            iter = iter->prev;
-            return toReturn;
-        }
-
-        const T& operator*()
-        {
-            if (iter == nullptr)
-            {
-                throw std::exception();
-            }
-            return iter->data;
-        }
-
-        bool operator==(const Iterator& other) const
-        {
-            return (*this == other.iter);
-        }
-
-        bool operator!=(const Iterator& other) const
-        {
-            return !(&this == other);
-        }
-    };
+	void copyFrom(const DLL<T>&);
+	void free();
 
 public:
 
-    DoubleLinkedList();
-    DoubleLinkedList(const DoubleLinkedList<T>&);
-    DoubleLinkedList<T>& operator= (const DoubleLinkedList<T>&);
-    ~DoubleLinkedList();
+	DLL();
+	DLL(const DLL<T>&);
+	DLL<T>& operator=(const DLL<T>&);
+	~DLL();
 
-    void pushFront(const T& data);
-    void pushBack(const T& data);
+	void pushFront(const T&);
+	void pushBack(const T&);
 
-    void popFront();
-    void popBack();
+	void popFront();
+	void popBack();
 
-    const T& front() const;
-    const T& back() const;
+	const T& front() const;
+	const T& back() const;
 
-    Iterator begin();
-    Iterator end();
+	bool empty() const;
 
-    bool empty() const;
+	void print() const;
+
+	class Iterator;
+	Iterator insertAfter(const Iterator&, const T&); // връщаме итератор към добавения елемент
+	Iterator remove(const Iterator&); // връщаме итератор към елемента след изтрития 
+
+	class Iterator
+	{
+	private:
+
+		Node* iter;
+		friend class DLL;
+
+	public:
+		Iterator(Node* it = nullptr) : iter{ it } {}
+
+		bool isValid() const
+		{
+			return iter != nullptr;
+		}
+
+		// ++it
+		Iterator& operator++()
+		{
+			if (!iter)
+				return (*this);
+
+			iter = iter->next;
+			return (*this);
+		}
+
+		// it++
+		Iterator operator++(int)
+		{
+			if (!iter)
+				return (*this);
+
+			Iterator toReturn = (*this);
+			++(*this);
+			return toReturn;
+		}
+
+		// --it
+		Iterator& operator--()
+		{
+			if (!iter)
+				return (*this);
+
+			iter = iter->prev;
+			return(*this);
+		}
+
+		// it--
+		Iterator operator--(int)
+		{
+			if (!iter)
+				return (*this);
+
+			Iterator toReturn = (*this);
+			--(*this);
+			return toReturn;
+		}
+
+		T& operator*()
+		{
+			return iter->data;
+		}
+
+		bool operator==(const Iterator& it)
+		{
+			return iter = it.iter;
+		}
+
+		bool operator!=(const Iterator& it)
+		{
+			return !((*this) == it);
+		}
+	};
+
+	Iterator begin() const
+	{
+		return Iterator(head);
+	}
+
+	Iterator end() const
+	{
+		return Iterator();
+	}
 };
 
 template<typename T>
-void DoubleLinkedList<T>::copyFrom(const DoubleLinkedList<T>& other)
+void DLL<T>::copyFrom(const DLL<T>& other)
 {
-    Node<T>* iter = other.head;
+	head = nullptr;
+	tail = nullptr;
 
-    while (iter)
-    {
-        pushBack(iter->data);
-        iter = iter->next;
-    }
+	Node* iter = other.head;
+	while (iter)
+	{
+		pushBack(iter->data);
+		iter = iter->next;
+	}
 }
 
 template<typename T>
-void DoubleLinkedList<T>::free()
+void DLL<T>::free()
 {
-    while (!empty())
-    {
-        popFront();
-    }
+	while (!empty())
+	{
+		popBack();
+	}
 }
 
 template<typename T>
-DoubleLinkedList<T>::DoubleLinkedList()
+DLL<T>::DLL()
 {
-    head = nullptr;
-    tail = nullptr;
+	head = nullptr;
+	tail = nullptr;
 }
 
 template<typename T>
-DoubleLinkedList<T>::DoubleLinkedList(const DoubleLinkedList<T>& other)
+DLL<T>::DLL(const DLL<T>& other)
 {
-    copyFrom(other);
+	copyFrom(other);
 }
 
 template<typename T>
-DoubleLinkedList<T>& DoubleLinkedList<T>::operator=(const DoubleLinkedList<T>& other)
+DLL<T>& DLL<T>::operator=(const DLL<T>& other)
 {
-    if (this != &other)
-    {
-        free();
-        copyFrom(other);
-    }
-
-    return *this;
+	if (this != (&other))
+	{
+		free();
+		copyFrom(other);
+	}
+	return *this;
 }
 
 template<typename T>
-DoubleLinkedList<T>::~DoubleLinkedList()
+DLL<T>::~DLL()
 {
-    free();
+	free();
 }
 
 template<typename T>
-void DoubleLinkedList<T>::pushFront(const T& data)
+void DLL<T>::pushFront(const T& d)
 {
-    Node<T>* elem = new Node<T>(data);
-    if (empty())
-    {
-        head = tail = elem;
-    }
-    else
-    {
-        head->prev = elem;
-        elem->next = head;
-        head = elem;
-    }
+	Node* newElem = new Node(d);
+
+	if (empty())
+	{
+		head = newElem;
+		tail = newElem;
+	}
+	else
+	{
+		newElem->next = head;
+		head->prev = newElem;
+		head = newElem;
+	}
 }
 
 template<typename T>
-void DoubleLinkedList<T>::pushBack(const T& data)
+void DLL<T>::pushBack(const T& d)
 {
-    Node<T>* elem = new Node<T>(data);
-    if (empty())
-    {
-        head = tail = elem;
-    }
-    else
-    {
-        tail->next = elem;
-        elem->prev = tail;
-        tail = elem;
-    }
+	Node* newElem = new Node(d);
+
+	if (empty())
+	{
+		head = newElem;
+		tail = newElem;
+	}
+	else
+	{
+		newElem->prev = tail;
+		tail->next = newElem;
+		tail = newElem;
+	}
 }
 
 template<typename T>
-void DoubleLinkedList<T>::popFront()
+void DLL<T>::popFront()
 {
-    if (empty())
-    {
-        std::cerr << "Empty List!" << std::endl;
-    }
-    else if (head == tail)
-    {
-        delete head;
-        head = tail = nullptr;
-    }
-    else
-    {
-        Node<T>* toDelete = head;
-        head = head->next;
-        head->prev = nullptr;
-        delete toDelete;
-    }
+	if (empty())
+	{
+		throw std::runtime_error("Empty list!");
+	}
+
+	if (head == tail)
+	{
+		delete head;
+		head = nullptr;
+		tail = nullptr;
+	}
+	else 
+	{
+		Node* toDelete = head;
+		head = head->next;
+		head->prev = nullptr;
+		delete toDelete;
+	}
 }
 
 template<typename T>
-void DoubleLinkedList<T>::popBack()
+void DLL<T>::popBack()
 {
-    if (empty())
-    {
-        std::cerr << "Empty List!" << std::endl;
-    }
-    else if (head == tail)
-    {
-        delete head;
-        head = tail = nullptr;
-    }
-    else
-    {
-        Node<T>* toDelete = tail;
-        tail = tail->prev;
-        tail->next = nullptr;
-        delete toDelete;
-    }
+	if (empty())
+	{
+		throw std::runtime_error("Empty list!");
+	}
+
+	if (head == tail)
+	{
+		delete head;
+		head = nullptr;
+		tail = nullptr;
+	}
+	else
+	{
+		Node* toDelete = tail;
+		tail = tail->prev;
+		tail->next = nullptr;
+		delete toDelete;
+	}
 }
 
 template<typename T>
-const T& DoubleLinkedList<T>::front() const
+const T& DLL<T>::front() const
 {
-    return head->data;
+	return head->data;
 }
 
 template<typename T>
-const T& DoubleLinkedList<T>::back() const
+const T& DLL<T>::back() const
 {
-    return tail->data;
+	return tail->data;
 }
 
 template<typename T>
-typename DoubleLinkedList<T>::Iterator DoubleLinkedList<T>::begin()
+bool DLL<T>::empty() const
 {
-    return Iterator(head);
+	return head == nullptr && tail == nullptr;
 }
 
 template<typename T>
-typename DoubleLinkedList<T>::Iterator DoubleLinkedList<T>::end()
+void DLL<T>::print() const
 {
-    return Iterator(nullptr);
+	Node* iter = head;
+	while (iter)
+	{
+		std::cout << iter->data << " ";
+		iter = iter->next;
+	}
+	std::cout<<std::endl;
 }
 
 template<typename T>
-bool DoubleLinkedList<T>::empty() const
+typename DLL<T>::Iterator DLL<T>::insertAfter(const Iterator& it, const T& d)
 {
-    return (head == nullptr && tail == nullptr);
+	if ( !it.iter || it.iter == tail)
+	{
+		pushBack(d);
+		return end();
+	}
+
+	Node* newElem = new Node(d);
+	newElem->next = it.iter->next;
+	newElem->next = it.iter;
+	it.iter->next = newElem;
+	return typename DLL<T>::Iterator(newElem);
+}
+
+template<typename T>
+typename DLL<T>::Iterator DLL<T>::remove(const Iterator& it)
+{
+	if (it.iter == head)
+	{
+		popFront();
+		return begin();
+	}
+	else if (!it.iter || !it.iter->next)
+	{
+		popBack();
+		return end();
+	}
+
+	Node* toDelete = it.iter;
+	Node* next = toDelete->next;
+	it.iter->prev->next = next;
+	next->prev = it.iter->prev;
+	delete toDelete;
+	return typename DLL<T>::Iterator(next);
 }
