@@ -1,39 +1,54 @@
 #include "Graph.h"
 
-Graph::Graph(unsigned int vertexCount)
+int Graph::findVertex(std::string& str) const
 {
-	data = std::vector<std::list<Edge>>(vertexCount , std::list<Edge>());
+	for (int i = 0; i < data.size(); i++)
+	{
+		if (data[i].first == str)
+			return i;
+	}
+	return -1;
 }
 
-void Graph::addVertex()
+Graph::Graph(int vertexCount)
 {
-	data.push_back(std::list<Edge>());
+	data.assign(vertexCount, std::pair<std::string, std::list<Edge>>());
 }
 
-bool Graph::isValidVertex(const unsigned int& vertex) const
+void Graph::addVertex(std::string& n)
 {
-	return vertex < data.size();
+
+	data.push_back(std::make_pair(n, std::list<Edge>()));
 }
 
-void Graph::addEdge(const unsigned int& start, const unsigned int& end, unsigned int w)
+bool Graph::isValidVertex(std::string& vertex) const
 {
-	if(!isValidVertex(start) || !isValidVertex(end))
+	return findVertex(vertex) != -1;
+}
+
+void Graph::addEdge(std::string& start, std::string& end, int w)
+{
+	if (!isValidVertex(start) || !isValidVertex(end))
 	{
 		throw std::runtime_error("Invalid vertex");
 	}
 
-	data[start].push_back({ end, w });
-	data[end].push_back({ start, w });
+	int startInd = findVertex(start);
+	int endInd = findVertex(end);
+	data[startInd].second.push_back({ end, w });
+	data[endInd].second.push_back({ start, w });
 }
 
-unsigned int Graph::getWeight(const unsigned& from, const unsigned int& to) const
+int Graph::getWeight(std::string& from, std::string& to) const
 {
 	if (!isValidVertex(from) || !isValidVertex(to))
 	{
 		throw std::runtime_error("Invalid vertex");
 	}
 
-	for (const Edge& e : data[from])
+	int startInd = findVertex(from);
+
+	for (const Edge& e : data[startInd].second)
 	{
 		if (e.end == to)
 			return e.weight;
@@ -41,14 +56,16 @@ unsigned int Graph::getWeight(const unsigned& from, const unsigned int& to) cons
 	return 0;
 }
 
-bool Graph::hasEdge(const unsigned int& from, const unsigned int& to) const
+bool Graph::hasEdge(std::string& from, std::string& to) const
 {
 	if (!isValidVertex(from) || !isValidVertex(to))
 	{
 		return false;
 	}
 
-	for (const Edge& e : data[from])
+	int startInd = findVertex(from);
+
+	for (const Edge& e : data[startInd].second)
 	{
 		if (e.end == to)
 			return true;
@@ -56,102 +73,56 @@ bool Graph::hasEdge(const unsigned int& from, const unsigned int& to) const
 	return false;
 }
 
-void Graph::getSuccessors(const unsigned int& vertex, std::vector<std::pair<unsigned int, unsigned int>>& v)
+void Graph::getSuccessors(std::string& vertex, std::vector<std::pair<std::string, int>>& v)
 {
 	if (!isValidVertex(vertex))
 	{
 		throw std::runtime_error("Invalid vertex!");
 	}
-	
-	for (const Edge& e : data[vertex])
+
+	int startInd = findVertex(vertex);
+
+	for (const Edge& e : data[startInd].second)
 	{
 		v.push_back(std::make_pair(e.end, e.weight));
 	}
 }
 
-void Graph::getPredeccessors(const unsigned int& vertex, std::vector<std::pair<unsigned int, unsigned int>>& v)
+void Graph::getPredeccessors(std::string& vertex, std::vector<std::pair<std::string, int>>& v)
 {
 	if (!isValidVertex(vertex))
 	{
 		throw std::runtime_error("Invalid vertex!");
 	}
 
+	int startInd = findVertex(vertex);
+
 	for (unsigned int i = 0; i < data.size(); i++)
 	{
-		for (const Edge& e : data[i])
+		for (const Edge& e : data[i].second)
 		{
 			if (e.end == vertex)
-				v.push_back(std::make_pair(i, e.weight
-				));
+				v.push_back(std::make_pair(data[i].first, e.weight));
 		}
 	}
 }
 
-void Graph::print(std::vector<std::string>& v) const
+void Graph::print() const
 {
 	int len = data.size();
 
 	for (int i = 0; i < len; i++)
 	{
-		for (const Edge& e : data[i])
+		for (const Edge& e : data[i].second)
 		{
-			std::cout << v[i] << "->" << v[e.end] << " - " << e.weight << std::endl;
+			std::cout << data[i].first << "->" << e.end << " - " << e.weight << std::endl;
 		}
 	}
 }
 
-void readFirstRow(std::string source, int& k, int& r)
-{
-	std::ifstream myfile;
-	myfile.open(source);
-	std::string myline;
-	if (myfile.is_open()) {
-		while (!myfile.eof()) {
-			std::getline(myfile, myline);
+// Четене от файл
 
-			int i = 0;
-			while (myline[i] != ' ')
-			{
-				char c = myline[i];
-				int digit = c - '0';
-				k *= 10;
-				k += digit;
-				i++;
-			}
-
-			i++;
-
-			while (myline[i] != '\0')
-			{
-				char c = myline[i];
-				int digit = c - '0';
-				r *= 10;
-				r += digit;
-				i++;
-			}
-
-			break;
-		}
-	}
-	else {
-		std::cout << "Couldn't open file\n";
-	}
-}
-
-int findWord(std::vector<std::string> v, std::string str)
-{
-	int len = v.size();
-	for (int i = 0; i < len; i++)
-	{
-		if (str == v[i])
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-void readRRows(std::string source, int r, std::vector<std::string>& v, Graph& g)
+void Graph::inputFromFile(std::string source, int& k, int& r, int& time)
 {
 	std::ifstream myfile;
 	myfile.open(source);
@@ -163,15 +134,37 @@ void readRRows(std::string source, int r, std::vector<std::string>& v, Graph& g)
 			cnt++;
 			if (cnt == 1)
 			{
-				continue;
-			}
-			else if (cnt > r + 1)
-			{
-				break;
-			}
-			else {
-
 				int i = 0;
+
+				// к на брой върха
+
+				while (myline[i] != ' ')
+				{
+					char c = myline[i];
+					int digit = c - '0';
+					k *= 10;
+					k += digit;
+					i++;
+				}
+
+				i++;
+
+				// r връзки
+
+				while (myline[i] != '\0')
+				{
+					char c = myline[i];
+					int digit = c - '0';
+					r *= 10;
+					r += digit;
+					i++;
+				}
+			}
+			else if (cnt <= r + 1)
+			{
+				int i = 0;
+
+				// от:
 
 				std::string curr;
 				while (myline[i] != ' ')
@@ -180,14 +173,16 @@ void readRRows(std::string source, int r, std::vector<std::string>& v, Graph& g)
 					i++;
 				}
 
-				int ind = findWord(v, curr);
+				int ind = findVertex(curr);
 				if (ind == -1)
 				{
-					v.push_back(curr);
-					ind = v.size() - 1;
+					addVertex(curr);
 				}
 
 				i++;
+
+				// до:
+
 				std::string curr2;
 				while (myline[i] != ' ')
 				{
@@ -195,14 +190,16 @@ void readRRows(std::string source, int r, std::vector<std::string>& v, Graph& g)
 					i++;
 				}
 
-				int ind2 = findWord(v, curr2);
+				int ind2 = findVertex(curr2);
 				if (ind2 == -1)
 				{
-					v.push_back(curr2);
-					ind2 = v.size() - 1;
+					addVertex(curr2);;
 				}
 
 				i++;
+
+				// за време:
+
 				int weight = 0;
 				while (myline[i] != '\0')
 				{
@@ -212,28 +209,14 @@ void readRRows(std::string source, int r, std::vector<std::string>& v, Graph& g)
 					weight += digit;
 					i++;
 				}
-				g.addEdge(ind, ind2, weight);
+				addEdge(curr, curr2, weight);
 			}
-		}
-	}
-	else {
-		std::cout << "Couldn't open file\n";
-	}
-}
-
-void readLastRow(std::string source, int r, int& time)
-{
-	std::ifstream myfile;
-	myfile.open(source);
-	std::string myline;
-	int cnt = 0;
-	if (myfile.is_open()) {
-		while (!myfile.eof()) {
-			std::getline(myfile, myline);
-			cnt++;
-			if (cnt > r + 1)
+			else
 			{
 				int i = 0;
+
+				// време, с което разполагаме
+
 				while (myline[i] != '\0')
 				{
 					char c = myline[i];
@@ -244,5 +227,83 @@ void readLastRow(std::string source, int r, int& time)
 				}
 			}
 		}
+
+		myfile.close();
+	}
+	else {
+		std::cout << "Couldn't open file\n";
+	}
+
+}
+
+bool isVisitedBefore(std::vector<std::string> v, std::string vertex)
+{
+	for (int i = 0; i < v.size(); i++)
+	{
+		if (v[i] == vertex)
+			return true;
+	}
+	return false;
+}
+
+// проверяваме дали намерения път е по-оптимален 
+
+void Graph::check(std::vector<std::string> currPath, std::vector<std::string>& bestPath, int& maxVisited)
+{
+	std::vector<std::string> visited;
+	for (int i = 0; i < currPath.size(); i++)
+	{
+		if (!isVisitedBefore(visited, currPath[i]))
+		{
+			visited.push_back(currPath[i]);
+		}
+	}
+
+	int currVisited = visited.size();
+	if (currVisited > maxVisited)
+	{
+		maxVisited = currVisited;
+		bestPath.clear();
+		bestPath = currPath;
+	}
+}
+
+void Graph::findBestRoute_rec(std::vector<std::string> currPath, std::vector<std::string>& bestPath, int currTime, const int& maxTime, int& maxVisited, const std::string& start, std::string currPos)
+{
+	if (currTime > maxTime)
+	{
+		return;
+	}
+
+	if (currPos == start)
+	{
+		// достигнали сме началната позиция
+		check(currPath, bestPath, maxVisited);
+	}
+
+	std::vector<std::pair<std::string, int>> succ;
+	getSuccessors(currPos, succ);
+	for (int i = 0; i < succ.size(); i++)
+	{
+		currPath.push_back(succ[i].first);
+		findBestRoute_rec(currPath, bestPath, currTime + succ[i].second, maxTime, maxVisited, start, succ[i].first);
+		currPath.pop_back();
+	}
+}
+
+void Graph::findBestRoute(const int& maxTime)
+{
+	std::vector<std::string> currPath;
+	std::vector<std::string> bestPath;
+	int currTime = 0;
+	int maxVisited = 0;
+	std::string start = data[0].first;
+	std::string currPos = start;
+	currPath.push_back(start);
+	findBestRoute_rec(currPath, bestPath, currTime, maxTime, maxVisited, start, currPos);
+
+	for (int i = 0; i < bestPath.size(); i++)
+	{
+		std::cout << bestPath[i] << " ";
 	}
 }
