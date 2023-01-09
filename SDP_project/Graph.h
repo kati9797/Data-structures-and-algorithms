@@ -7,25 +7,33 @@
 
 struct Edge
 {
-	unsigned int end;
-	unsigned int weight;
+	std::string end;
+	int weight;
 
-	Edge(const unsigned int& e, const unsigned int& w) : end{ e }, weight{ w } {}
+	Edge() = default;
+	Edge(const std::string& e, const int& w) : end{ e }, weight{ w } {}
 };
 
 class Graph {
 
 private:
-	std::vector<std::list<Edge>> data;
+	std::vector<std::pair<std::string,std::list<Edge>>> data;
 
+	int findVertex(std::string&) const;
+	void findBestRoute_rec(std::vector<std::string>, std::vector<std::string>&, int, const int&, int&, const std::string&, std::string);
+	void check(std::vector<std::string>, std::vector<std::string>&, int&);
 public:
-	Graph(unsigned int);
-	void addVertex();
-	bool isValidVertex(const unsigned int&) const;
-	void addEdge(const unsigned int&, const unsigned int&, unsigned int);
-	unsigned int getWeight(const unsigned&, const unsigned int&) const;
-	bool hasEdge(const unsigned int&, const unsigned int&) const;
-	void getSuccessors(const unsigned int&, std::vector<std::pair<unsigned int, unsigned int>>&);
-	void getPredeccessors(const unsigned int&, std::vector<std::pair<unsigned int, unsigned int>>&);
-	void print(std::vector<std::string>&) const;
+	Graph() = default;
+	Graph(int);
+	void addVertex(std::string&);
+	bool isValidVertex(std::string&) const;
+	void addEdge(std::string&, std::string&, int);
+	int getWeight(std::string&, std::string&) const;
+	bool hasEdge(std::string&, std::string&) const;
+	void getSuccessors(std::string&, std::vector<std::pair<std::string, int>>&);
+	void getPredeccessors(std::string&, std::vector<std::pair<std::string, int>>&);
+	void print() const;
+
+	void inputFromFile(std::string, int&, int&, int&);
+	void findBestRoute(const int&);
 };
