@@ -59,7 +59,7 @@ public:
 			return iter->data;
 		}
 
-		// &it
+		// &it -> итератор към скип полето
 		Iterator operator&()
 		{
 			return Iterator(iter->skip);
@@ -97,9 +97,6 @@ public:
 	void pushBack(const T&); // създава едносвързан списък
 	void popFront();
 	void skip(const T&, const T&); // skip from - to
-	
-	void printDirect() const;
-	void printSkip() const;
 };
 
 template<typename T>
@@ -230,36 +227,6 @@ void SkipList<T>::skip(const T& from, const T& to)
 }
 
 template<typename T>
-void SkipList<T>::printDirect() const
-{
-	SLN* iter = head;
-	while (iter != nullptr)
-	{
-		std::cout << iter->data << "->";
-		iter = iter->next;
-	}
-	std::cout << "/" << std::endl;
-}
-
-template<typename T>
-void SkipList<T>::printSkip() const
-{
-	SLN* iter = head;
-	while (iter != nullptr)
-	{
-		if (iter->skip != nullptr)
-		{
-			std::cout << iter->data << "->" << iter->skip->data << std::endl;
-			iter = iter->next;
-		}
-		else
-		{
-			iter = iter->next;
-		}
-	}
-}
-
-template<typename T>
 void searchBetterSkip(bool& foundNext, bool& foundSkip, typename SkipList<T>::Iterator& skipIter, T nextInList)
 {
 	typename SkipList<T>::Iterator skip = &skipIter; // скип поле на текуща гара
@@ -366,7 +333,6 @@ std::list<T> findBestWay(SkipList<T>& sl, std::list<T>& list)
 		end++;
 	}
 
-	
 	while (skipIter != sl.end())
 	{
 		typename SkipList<T>::Iterator skip = &skipIter;
