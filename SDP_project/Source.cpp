@@ -2,27 +2,15 @@
 #include <string>
 #include "Skiplist.hpp"
 #include <list>
+#include <fstream>
+#include <vector>
+#include "Graph.h"
+#include "Box.h"
 
 int main()
 {
 	/*
-	SkipList<std::string> s;
-	s.pushBack("Sofia");
-	s.pushBack("Pazrdzhik");
-	s.pushBack("Plovdiv");
-	s.pushBack("Dimitrovgrad");
-	s.pushBack("StaraZagora");
-	s.pushBack("NovaZagora");
-
-	s.skip("Sofia", "Plovdiv");
-	s.skip("Plovdiv", "Dimitrovgrad");
-	s.skip("Dimitrovgrad", "NovaZagora");
-
-	//s.popFront();
-	//s.printDirect();
-	//s.printSkip();
-	*/
-
+	// А)
 	
 	// Градове, през които минава влака
 	std::cout << "Number of towns: ";
@@ -32,11 +20,11 @@ int main()
 	std::string str;
 	for (int i = 0; i < n; i++)
 	{
-		
+
 		std::cin >> str;
 		towns.pushBack(str);
 	}
-
+	
 	// Директни връзки
 	std::cout << "Number of direct links: ";
 	int n2;
@@ -52,15 +40,12 @@ int main()
 		towns.skip(from, to);
 	}
 
-	//towns.printDirect();
-	//towns.printSkip();
-	
 	// Градове, които трябва да бъдат посетени
 	std::list<std::string> toVisit;
 	int n3;
 	std::cout << "Number of towns to visit: ";
 	std::cin >> n3;
-	std::cout << "Towns to visit: ";
+	std::cout << "Towns to visit: " << std::endl;
 	for (int i = 0; i < n3; i++)
 	{
 		std::cin >> str;
@@ -74,6 +59,31 @@ int main()
 		std::cout << *it << " ";
 		it++;
 	}
+	*/
+	
+	/*
+	// Б)
+
+	int k = 0;
+	int r = 0;
+	int time = 0;
+	Graph g;
+	g.inputFromFile("town.txt", k, r, time);
+	// 
+	//g.print();
+	std::cout << "Best route: " << std::endl;
+	g.findBestRoute(time);
+	*/
+
+	/*
+	// В)
+
+	Box mainBox;
+	int countBoxes = 0;
+	mainBox.initFromFile("boxes.txt", countBoxes);
+	mainBox.reduceBoxes();
+	mainBox.printBox();
+	*/
 }
 
 /*
